@@ -43,7 +43,7 @@ for i in range(N_POST_BATCHES):
                        headers=headers,
                        params=params)
 
-    post_list = fetch_operations.post_list_from_response(res)
+    post_list = fetch_operations.post_list_from_response(res, headers, params)
     # take the final row (oldest entry)
     last_row = post_list[:-1][0]
     # create fullname id, like t3_000000
