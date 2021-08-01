@@ -7,7 +7,7 @@ from time import sleep
 
 # used to fetch every comment from a post, and persist it to MongoDB
 def fetch_comments_from_post(post_id, headers, params):
-    response = requests.get("https://oauth.reddit.com/r/sanfrancisco/new",
+    response = requests.get(f"https://oauth.reddit.com/r/sanfrancisco/comments/{post_id}",
                             headers=headers,
                             params=params)
 
