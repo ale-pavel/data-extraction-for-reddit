@@ -10,7 +10,7 @@ Storage of your choice among Redis, MongoDB, or Mysql. Up to you choose which on
 
 
 ## Installation
-Packages needed include pymongo and requests. Todo requirements.txt.
+Packages needed include pymongo and requests. Todo requirements.txt. Also docker-engine must be installed, along with docker-compose.
 
 ## Prerequisites
 Run the following commands to create the db needed for the job:
@@ -23,6 +23,14 @@ Run the following commands to create the db needed for the job:
 Then start the job with:
 
     ./run_job.sh
+
+After executing the job, clean MongoDB data (removing the entire db) by:
+
+    ./mongo_shell.sh
+    use db
+    db.dropDatabase()
+
+This allows to avoid duplicates problems, which have not been handled at all in the code.
 
 Remember to stop the Docker containers with:
 
