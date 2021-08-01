@@ -1,3 +1,8 @@
+secret.txt
+api_key.txt
+mongodb/database/
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
