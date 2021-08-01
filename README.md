@@ -12,6 +12,10 @@ Storage of your choice among Redis, MongoDB, or Mysql. Up to you choose which on
 ## Installation
 Packages needed include pymongo and requests. Todo requirements.txt. Also docker-engine must be installed, along with docker-compose.
 
+Credentials are also needed to run this project, in particular:
+- Reddit username/password into ```secret.txt```
+- Reddit Dev Keys into ```api_key.txt```
+
 ## Prerequisites
 Run the following commands to create the db needed for the job:
 
