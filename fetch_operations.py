@@ -4,8 +4,9 @@ from collections import deque
 import mongo_operations
 from time import sleep
 
+
 # used to fetch every comment from a post, and persist it to MongoDB
-def fetch_comments_from_post(post_id):
+def fetch_comments_from_post(post_id, headers, params):
     response = requests.get("https://oauth.reddit.com/r/sanfrancisco/new",
                             headers=headers,
                             params=params)
@@ -42,7 +43,7 @@ def fetch_comments_from_post(post_id):
 
 
 # we use this function to convert responses to a list of parsed posts
-def post_list_from_response(response):
+def post_list_from_response(response, headers, params):
     post_list_batch = []
 
     # loop through each post pulled from response and append to a list
@@ -64,6 +65,6 @@ def post_list_from_response(response):
         # don't overload the servers with requests
         sleep(1)
         # get and persist the comments for the current post
-        fetch_comments_from_post(post['data']['id'])
+        fetch_comments_from_post(post['data']['id'], headers, params)
 
     return post_list_batch
