@@ -34,8 +34,8 @@ db = mongo_client.db
 
 # Important: The API has a limit of requests per minute, monitor the usage.
 # https://github.com/reddit-archive/reddit/wiki/API
-params = {'limit': 5}
-N_POST_BATCHES = 1
+params = {'limit': 100}
+N_POST_BATCHES = 10
 
 # fetch N * limit posts
 for i in range(N_POST_BATCHES):
@@ -44,9 +44,9 @@ for i in range(N_POST_BATCHES):
                        headers=headers,
                        params=params)
 
-    post_list = fetch_operations.post_list_from_response(res, headers, params)
+    post_list = fetch_operations.post_list_from_response(res, headers)
     # take the final row (oldest entry)
-    last_row = post_list[:-1][0]
+    last_row = post_list[-1:][0]
     # create fullname id, like t3_000000
     fullname = last_row['kind'] + '_' + last_row['_id']
     # add/update fullname in params, to
@@ -55,7 +55,7 @@ for i in range(N_POST_BATCHES):
     # persist list of posts in mongo, using insert_many()
     mongo_operations.persist_post_list(post_list)
 
-    print('post processed')
+    print(f'post batch ({params["limit"]} posts) processed {i+1}/{N_POST_BATCHES}')
 
     # don't overload the servers with requests
     sleep(1)
