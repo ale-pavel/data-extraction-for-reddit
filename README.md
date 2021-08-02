@@ -1,4 +1,4 @@
-# spiketrap-homework
+# data-extraction-homework
 
 Homework:
 
