@@ -10,7 +10,7 @@ Storage of your choice among Redis, MongoDB, or Mysql. Up to you choose which on
 
 
 ## Installation
-Packages needed include pymongo and requests. Todo requirements.txt. Also docker-engine must be installed, along with docker-compose.
+Packages needed include pymongo and requests. Todo requirements.txt. docker-engine must be installed, along with docker-compose and mongosh/mongo.
 
 Credentials are also needed to run this project, in particular:
 - Reddit username/password into ```secret.txt```
