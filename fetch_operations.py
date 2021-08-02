@@ -4,9 +4,13 @@ from collections import deque
 import mongo_operations
 from time import sleep
 
+# POST_LIMIT = 5
+COMMENT_LIMIT = 20
+
 
 # used to fetch every comment from a post, and persist it to MongoDB
-def fetch_comments_from_post(post_id, headers, params):
+def fetch_comments_from_post(post_id, headers):
+    params = {'limit': COMMENT_LIMIT}
     response = requests.get(f"https://oauth.reddit.com/r/sanfrancisco/comments/{post_id}",
                             headers=headers,
                             params=params)
@@ -16,30 +20,50 @@ def fetch_comments_from_post(post_id, headers, params):
     queue = deque(comment_tree)
 
     # loop through each comment obtained from a single post
-    for comment in queue:
+    while queue:
         # remove the current processed comment from the queue
-        queue.popleft()
+        comment = queue.popleft()
+        # comment limit number has been reached, load more
+        if comment['kind'] == 'more':
+            more_list = ','.join(comment['data']['children'])
+            comment_list = get_more_comments(more_list, headers)
+            queue.extendleft(comment_list)
+        else:
+            comment_data = {
+                '_id': comment['data']['id'],
+                'parent': comment['data']['parent_id'],
+                'kind': comment['kind'],
+                'author': comment['data']['author'],
+                'author_fullname': comment['data']['author_fullname'],
+                'body': comment['data']['body'],
+                'ups': comment['data']['ups'],
+                'downs': comment['data']['downs']
+            }
 
-        comment_data = {
-            '_id': comment['data']['id'],
-            'parent': comment['data']['parent_id'],
-            'kind': comment['kind'],
-            'author': comment['data']['author'],
-            'author_fullname': comment['data']['author_fullname'],
-            'body': comment['data']['body'],
-            'ups': comment['data']['ups'],
-            'downs': comment['data']['downs']
-        }
+            post_id = comment['data']['link_id']
+            # persist the comment in mongoDB, in a collection identified by the post (each comment is a document)
+            mongo_operations.persist_comment(comment_data, post_id)
 
-        post_id = comment['link_id']
-        # persist the comment in mongoDB, in a collection identified by the post (each comment is a document)
-        mongo_operations.persist_comment(comment_data, post_id)
+            # get the replies list for the current comment
+            replies = comment['data']['replies']
+            # add it to the queue (depth-first search), only if replies are present
+            if replies != '' and len(replies['data']['children']) > 0:
+                queue.extendleft(replies['data']['children'])
 
-        # get the replies list for the current comment
-        replies = comment['replies']['data']['children']
-        # add it to the queue (depth-first search), only if replies are present
-        if replies != '' and len(replies) > 0:
-            queue.appendleft(replies)
+            print('comment tree processed')
+
+
+def get_more_comments(post_id, more_comments, headers):
+    params = {'api_type': 'json',
+              'children': more_comments,
+              'limit_children': False,
+              'link_id': post_id,
+              'sort': 'new'}
+    response = requests.get(f"https://oauth.reddit.com/api/morechildren",
+                            headers=headers,
+                            params=params)
+
+    return response['data']['children']
 
 
 # we use this function to convert responses to a list of parsed posts
@@ -53,7 +77,10 @@ def post_list_from_response(response, headers, params):
             'kind': post['kind'],
             'subreddit': post['data']['subreddit'],
             'title': post['data']['title'],
+            'author': post['data']['author'],
+            'author_fullname': post['data']['author_fullname'],
             'selftext': post['data']['selftext'],
+            'num_comments': post['data']['num_comments'],
             'upvote_ratio': post['data']['upvote_ratio'],
             'ups': post['data']['ups'],
             'downs': post['data']['downs'],
@@ -65,6 +92,6 @@ def post_list_from_response(response, headers, params):
         # don't overload the servers with requests
         sleep(1)
         # get and persist the comments for the current post
-        fetch_comments_from_post(post['data']['id'], headers, params)
+        fetch_comments_from_post(post['data']['id'], headers)
 
     return post_list_batch

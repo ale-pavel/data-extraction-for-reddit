@@ -34,11 +34,12 @@ db = mongo_client.db
 
 # Important: The API has a limit of requests per minute, monitor the usage.
 # https://github.com/reddit-archive/reddit/wiki/API
-params = {'limit': 100}
-N_POST_BATCHES = 5
+params = {'limit': 5}
+N_POST_BATCHES = 1
 
-# fetch N * 100 posts
+# fetch N * limit posts
 for i in range(N_POST_BATCHES):
+    # get the newest params['limit'] posts in the subreddit
     res = requests.get("https://oauth.reddit.com/r/sanfrancisco/new",
                        headers=headers,
                        params=params)
@@ -47,11 +48,14 @@ for i in range(N_POST_BATCHES):
     # take the final row (oldest entry)
     last_row = post_list[:-1][0]
     # create fullname id, like t3_000000
-    fullname = last_row['kind'] + '_' + last_row['id']
+    fullname = last_row['kind'] + '_' + last_row['_id']
     # add/update fullname in params, to
     params['after'] = fullname
 
     # persist list of posts in mongo, using insert_many()
     mongo_operations.persist_post_list(post_list)
+
+    print('post processed')
+
     # don't overload the servers with requests
     sleep(1)
