@@ -9,5 +9,5 @@ services:
             MONGO_INITDB_ROOT_USERNAME: user
             MONGO_INITDB_ROOT_PASSWORD: pw
         volumes:
-            - /home/alex/git/spiketrap-homework/mongodb/database:/data/db
+            - /home/alex/git/data-extraction-for-reddit/mongodb/database:/data/db
         restart: unless-stopped
